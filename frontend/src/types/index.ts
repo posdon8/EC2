@@ -1,8 +1,11 @@
 export interface User {
-  userId: string;
+  _id?: string;
+  userId?: string;
   email: string;
   name: string;
   role: "customer" | "admin";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Product {
@@ -15,6 +18,8 @@ export interface Product {
   stock: number;
   rating: number;
   reviewCount: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CartItem {
@@ -60,4 +65,11 @@ export interface Review {
   comment: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DashboardStats {
+  totalUsers: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
 }

@@ -46,4 +46,41 @@ export const authController = {
       message: "Logout successful",
     });
   }),
+
+  changePassword: asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+    const userId = req.userId;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      res.status(400).json({
+        success: false,
+        message: "Please provide all required fields",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      res.status(400).json({
+        success: false,
+        message: "New passwords do not match",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+      return;
+    }
+
+    const user = await AuthService.changePassword(userId!, oldPassword, newPassword);
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+      data: user,
+    });
+  }),
 };

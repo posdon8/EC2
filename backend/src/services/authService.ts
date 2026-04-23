@@ -105,4 +105,37 @@ export class AuthService {
       },
     };
   }
+
+  static async changePassword(userId: string, oldPassword: string, newPassword: string) {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      const error: ApiError = new Error("User not found");
+      error.status = 404;
+      throw error;
+    }
+
+    // Verify old password
+    const isPasswordValid = await bcryptjs.compare(
+      oldPassword,
+      user.password || ""
+    );
+    if (!isPasswordValid) {
+      const error: ApiError = new Error("Current password is incorrect");
+      error.status = 401;
+      throw error;
+    }
+
+    // Hash new password and update
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    return {
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+  }
 }

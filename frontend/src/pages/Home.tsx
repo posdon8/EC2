@@ -3,18 +3,29 @@ import { useStore } from "../store/useStore";
 import { ProductCard } from "../components/ProductCard";
 
 export const Home = () => {
-  const { products, getProducts, loading } = useStore();
+  const { products, getProducts, loading, setProductQuery } = useStore();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-
-  useEffect(() => {
-    getProducts(1, category, search);
-  }, []);
-
+ ;
   const handleSearch = () => {
-    getProducts(1, category, search);
+  setProductQuery(1, category, search);
+  getProducts();
+};
+// fetch lần đầu khi vào trang
+useEffect(() => {
+  getProducts();
+  const handleFocus = () => {
+    getProducts(); // 🔥 không truyền param nữa
   };
 
+  window.addEventListener("focus", handleFocus);
+  document.addEventListener("visibilitychange", handleFocus);
+
+  return () => {
+    window.removeEventListener("focus", handleFocus);
+    document.removeEventListener("visibilitychange", handleFocus);
+  };
+}, []);
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">

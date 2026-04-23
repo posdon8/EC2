@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 import { config } from "./src/config";
 import { Product } from "./src/models/Product";
+import { User } from "./src/models/User";
 
 const seedProducts = [
   {
@@ -161,15 +163,37 @@ const seedProducts = [
   },
 ];
 
+const seedAdmin = {
+  email: "admin@example.com",
+  password: "Admin@123456",
+  name: "Admin User",
+  role: "admin" as const,
+};
+
 async function seed() {
   try {
     // Connect to MongoDB
     await mongoose.connect(config.mongoUri);
     console.log("✅ Connected to MongoDB");
 
+    // Clear existing users
+    await User.deleteMany({});
+    console.log("🗑️  Cleared existing users");
+
     // Clear existing products
     await Product.deleteMany({});
     console.log("🗑️  Cleared existing products");
+
+    // Hash admin password and create admin user
+    const hashedPassword = await bcrypt.hash(seedAdmin.password, 10);
+    const adminUser = await User.create({
+      ...seedAdmin,
+      password: hashedPassword,
+    });
+    console.log(`✅ Created admin user: ${adminUser.email}`);
+    console.log(`📧 Admin Credentials:`);
+    console.log(`   Email: ${seedAdmin.email}`);
+    console.log(`   Password: ${seedAdmin.password}`);
 
     // Insert seed products
     const insertedProducts = await Product.insertMany(seedProducts);

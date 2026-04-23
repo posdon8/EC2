@@ -23,7 +23,12 @@ interface StoreState {
   // Products
   products: Product[];
   loading: boolean;
-  getProducts: (page?: number, category?: string, search?: string) => Promise<void>;
+  currentPage: number;
+currentCategory: string;
+currentSearch: string;
+
+setProductQuery: (page?: number, category?: string, search?: string) => void;
+getProducts: (page?: number, category?: string, search?: string) => Promise<void>;
 
   // UI
   cartOpen: boolean;
@@ -113,21 +118,43 @@ export const useStore = create<StoreState>((set, get) => ({
 
   products: [],
   loading: false,
+  currentPage: 1,
+currentCategory: "",
+currentSearch: "",
+setProductQuery: (page = 1, category = "", search = "") =>
+  set({
+    currentPage: page,
+    currentCategory: category,
+    currentSearch: search,
+  }),
+  getProducts: async (page, category, search) => {
+  const state = get();
 
-  getProducts: async (page = 1, category = "", search = "") => {
-    set({ loading: true });
-    try {
-      const params = new URLSearchParams();
-      params.append("page", page.toString());
-      if (category) params.append("category", category);
-      if (search) params.append("search", search);
+  const finalPage = page ?? state.currentPage;
+  const finalCategory = category ?? state.currentCategory;
+  const finalSearch = search ?? state.currentSearch;
 
-      const response = await api.get(`/products?${params.toString()}`);
-      set({ products: response.data.data.products });
-    } catch (error) {
-      console.error("Failed to get products:", error);
-    } finally {
-      set({ loading: false });
-    }
-  },
+  // 🔥 lưu query global
+  set({
+    currentPage: finalPage,
+    currentCategory: finalCategory,
+    currentSearch: finalSearch,
+    loading: true,
+  });
+
+  try {
+    const params = new URLSearchParams();
+    params.append("page", finalPage.toString());
+    if (finalCategory) params.append("category", finalCategory);
+    if (finalSearch) params.append("search", finalSearch);
+
+    const response = await api.get(`/products?${params.toString()}`);
+
+    set({ products: response.data.data.products });
+  } catch (error) {
+    console.error("Failed to get products:", error);
+  } finally {
+    set({ loading: false });
+  }
+},
 }));
