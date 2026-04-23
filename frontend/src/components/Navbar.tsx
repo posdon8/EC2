@@ -21,6 +21,11 @@ export const Navbar = () => {
               <Link to="/orders" className="hover:text-blue-200">
                 Orders
               </Link>
+              {user?.role === "admin" && (
+                <Link to="/admin" className="bg-purple-600 px-3 py-1 rounded hover:bg-purple-700 font-medium">
+                  Admin
+                </Link>
+              )}
               <button
                 onClick={() => setCartOpen(!cartOpen)}
                 className="relative hover:text-blue-200"
