@@ -3,7 +3,9 @@ import { useEffect } from "react";
 import { useStore } from "./store/useStore";
 import { Navbar } from "./components/Navbar";
 import { CartSidebar } from "./components/CartSidebar";
+import { Welcome } from "./pages/Welcome";
 import { Home } from "./pages/Home";
+import { Explore } from "./pages/Explore";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { ProductDetail } from "./pages/ProductDetail";
@@ -36,7 +38,9 @@ function App() {
         <CartSidebar />
 
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Welcome />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/product/:id" element={<ProductDetail />} />

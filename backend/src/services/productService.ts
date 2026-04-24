@@ -8,6 +8,10 @@ interface CreateProductData {
   category: string;
   images: string[];
   stock: number;
+  gender?: string;
+  saleOff?: number;
+  originalPrice?: number;
+  isFeatured?: boolean;
 }
 
 export class ProductService {
@@ -15,13 +19,28 @@ export class ProductService {
     page: number = 1,
     limit: number = 10,
     category?: string,
-    search?: string
+    search?: string,
+    gender?: string,
+    onSale?: boolean,
+    featured?: boolean
   ) {
     const skip = (page - 1) * limit;
     const query: any = {};
 
     if (category) {
       query.category = category;
+    }
+
+    if (gender) {
+      query.gender = gender;
+    }
+
+    if (onSale) {
+      query.saleOff = { $gt: 0 };
+    }
+
+    if (featured) {
+      query.isFeatured = true;
     }
 
     if (search) {
