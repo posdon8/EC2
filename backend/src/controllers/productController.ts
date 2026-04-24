@@ -11,12 +11,18 @@ export const productController = {
     const limit = parseInt(req.query.limit as string) || 10;
     const category = req.query.category as string;
     const search = req.query.search as string;
+    const gender = req.query.gender as string;
+    const onSale = req.query.onSale as string;
+    const featured = req.query.featured as string;
 
     const result = await ProductService.getProducts(
       page,
       limit,
       category,
-      search
+      search,
+      gender,
+      onSale === "true",
+      featured === "true"
     );
 
     res.status(200).json({
@@ -36,7 +42,7 @@ export const productController = {
   }),
 
   createProduct: asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { name, description, price, category, images, stock } = req.body;
+    const { name, description, price, category, images, stock, gender, saleOff, originalPrice, isFeatured } = req.body;
 
     const product = await ProductService.createProduct({
       name,
@@ -45,6 +51,10 @@ export const productController = {
       category,
       images,
       stock,
+      gender,
+      saleOff,
+      originalPrice,
+      isFeatured,
     });
 
     res.status(201).json({
@@ -56,7 +66,7 @@ export const productController = {
 
   updateProduct: asyncHandler(async (req: AuthRequest<IdParams>, res: Response) => {
     const { id } = req.params;
-    const { name, description, price, category, images, stock } = req.body;
+    const { name, description, price, category, images, stock, gender, saleOff, originalPrice, isFeatured } = req.body;
 
     const product = await ProductService.updateProduct(id, {
       name,
@@ -65,6 +75,10 @@ export const productController = {
       category,
       images,
       stock,
+      gender,
+      saleOff,
+      originalPrice,
+      isFeatured,
     });
 
     res.status(200).json({

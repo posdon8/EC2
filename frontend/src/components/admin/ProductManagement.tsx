@@ -17,7 +17,11 @@ export function ProductManagement() {
     name: "",
     description: "",
     price: "",
+    originalPrice: "",
+    saleOff: "",
     category: "",
+    gender: "unisex",
+    isFeatured: false,
     stock: "",
     images: "",
   });
@@ -33,7 +37,7 @@ export function ProductManagement() {
       setLoading(true);
       const response = await api.get(`/products?page=${page}&limit=10`);
       setProducts(response.data.data.products);
-      setTotalPages(response.data.data.pages);
+      setTotalPages(response.data.data.pagination?.pages || 1);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to fetch products");
@@ -50,7 +54,11 @@ export function ProductManagement() {
       name: "",
       description: "",
       price: "",
+      originalPrice: "",
+      saleOff: "",
       category: "",
+      gender: "unisex",
+      isFeatured: false,
       stock: "",
       images: "",
     });
@@ -63,7 +71,11 @@ export function ProductManagement() {
       name: product.name,
       description: product.description,
       price: product.price.toString(),
+      originalPrice: product.originalPrice?.toString() || "",
+      saleOff: product.saleOff?.toString() || "",
       category: product.category,
+      gender: product.gender || "unisex",
+      isFeatured: product.isFeatured || false,
       stock: product.stock.toString(),
       images: product.images.join("\n"),
     });
@@ -77,29 +89,38 @@ export function ProductManagement() {
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
+      const payload: any = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         category: formData.category,
+        gender: formData.gender,
+        isFeatured: formData.isFeatured,
         stock: parseInt(formData.stock),
         images: formData.images.split("\n").filter(url => url.trim()),
       };
+
+      if (formData.originalPrice) {
+        payload.originalPrice = parseFloat(formData.originalPrice);
+      }
+      if (formData.saleOff) {
+        payload.saleOff = parseInt(formData.saleOff);
+      }
 
       if (selectedProduct) {
         // Update
         const response = await api.put(`/products/${selectedProduct._id}`, payload);
         setProducts(products.map(p => p._id === selectedProduct._id ? response.data.data : p));
         setSuccess(true);
-        // Refresh products in store
-        await getProducts();
+        // Refresh products in store for home page (with page 1, no filters)
+        await getProducts(1, "", "");
       } else {
         // Create
         const response = await api.post("/products", payload);
         setProducts([...products, response.data.data]);
         setSuccess(true);
-        // Refresh products in store for home page
-        await getProducts();
+        // Refresh products in store for home page (with page 1, no filters)
+        await getProducts(1, "", "");
       }
 
       setShowForm(false);
@@ -268,17 +289,71 @@ export function ProductManagement() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">Category *</label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleFormChange}
-                  required
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Original Price</label>
+                  <input
+                    type="number"
+                    name="originalPrice"
+                    value={formData.originalPrice}
+                    onChange={handleFormChange}
+                    step="0.01"
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Sale Off %</label>
+                  <input
+                    type="number"
+                    name="saleOff"
+                    value={formData.saleOff}
+                    onChange={handleFormChange}
+                    min="0"
+                    max="100"
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Category *</label>
+                  <input
+                    type="text"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleFormChange}
+                    required
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleFormChange}
+                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="unisex">Unisex</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={formData.isFeatured}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm font-medium text-gray-700">Mark as Featured</span>
+              </label>
 
               <div>
                 <label className="text-sm font-medium text-gray-700">Images (URLs, one per line)</label>
@@ -340,11 +415,21 @@ export function ProductManagement() {
                   <p className="font-bold">{selectedProduct.category}</p>
                 </div>
                 <div>
+                  <p className="text-xs text-gray-600">Gender</p>
+                  <p className="font-bold capitalize">{selectedProduct.gender}</p>
+                </div>
+                <div>
                   <p className="text-xs text-gray-600">Price</p>
                   <p className="text-xl font-bold text-blue-600">
                     ${selectedProduct.price.toFixed(2)}
                   </p>
                 </div>
+                {selectedProduct.saleOff && selectedProduct.saleOff > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-600">Sale Off</p>
+                    <p className="font-bold text-red-600">{selectedProduct.saleOff}%</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-gray-600">Stock</p>
                   <p className="font-bold">{selectedProduct.stock}</p>
@@ -353,6 +438,12 @@ export function ProductManagement() {
                   <p className="text-xs text-gray-600">Rating</p>
                   <p className="font-bold">⭐ {selectedProduct.rating.toFixed(1)}</p>
                 </div>
+                {selectedProduct.isFeatured && (
+                  <div>
+                    <p className="text-xs text-gray-600">Status</p>
+                    <p className="font-bold text-yellow-600">⭐ Featured</p>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => handleEditProduct(selectedProduct)}

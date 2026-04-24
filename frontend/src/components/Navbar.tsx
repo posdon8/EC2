@@ -12,8 +12,11 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex gap-6 items-center">
-          <Link to="/" className="hover:text-blue-200">
+          <Link to="/home" className="hover:text-blue-200">
             Home
+          </Link>
+          <Link to="/explore" className="hover:text-blue-200">
+            Explore
           </Link>
 
           {isLoggedIn && (

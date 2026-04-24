@@ -4,7 +4,11 @@ interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
-  category: string;
+  originalPrice?: number;
+  saleOff?: number;
+  categoryId: mongoose.Types.ObjectId;
+  gender: string;
+  isFeatured: boolean;
   images: string[];
   stock: number;
   rating: number;
@@ -29,9 +33,28 @@ const productSchema = new Schema<IProduct>(
       required: true,
       min: 0,
     },
-    category: {
-      type: String,
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "unisex"],
+      default: "unisex",
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    originalPrice: {
+      type: Number,
+      min: 0,
+    },
+    saleOff: {
+      type: Number,
+      min: 0,
+      max: 100,
     },
     images: {
       type: [String],

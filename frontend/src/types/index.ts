@@ -13,7 +13,11 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
+  saleOff?: number;
   category: string;
+  gender: string;
+  isFeatured: boolean;
   images: string[];
   stock: number;
   rating: number;
